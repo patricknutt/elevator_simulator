@@ -15,16 +15,16 @@ import elevator.animator.DrawListener;
 import java.awt.Color;
 
 /**
- * Building represents a building object that houses a specific number of elevators 
- * and floors. The Building creates five elevator threads and 50 passenger
- * threads and runs each. It also provides encapsulation of the methods of the 
- * Floor objects.
+ * Building represents a building object that houses a specific number of passengers, 
+ * elevators and floors. The Building object takes an input for the number of elevators and floors and draws each. 
+ * The Building object acts as a state machine controlling the movements of elevators and passengers
  */
 
 public class Building implements DrawListener{
 	
-	private Color myColor = new Color(138, 168, 204); // Color to paint the building
-	private Floor[][] floor; // Array of floors
+	// Initialize building parameters
+	private Color myColor = Color.LIGHT_GRAY; 
+	private Floor[][] floor; 
 	private int numFloors;
 	
 	public Building (int numFloors, int numCars, Animator animator) {
@@ -63,48 +63,56 @@ public class Building implements DrawListener{
 		return floor.length;
 	}
 	
-	public int getFirstFloor() {
-		return numFloors * 50;
+	public int getLeftEdge() {
+		return 110;
+	}
+	
+	public int getRightEdge() {
+		return 400;
+	}
+	
+	public int getTopFloor() {
+		return (numFloors * 50);
 	}	
 
-	public void draw(DrawEvent de) {
+	public void draw(DrawEvent d_event) {
 		
-		Graphics g = de.getGraphics();
+		Graphics graph_gen = d_event.getGraphics();
 		
 		// Save old color and font     	
-		Color C = g.getColor();
+		Color original_color = graph_gen.getColor();
 		        
 		// Draw Building shell
-		g.setColor(myColor);         
-		g.fill3DRect (110, 50, 400, numFloors*50, true); 
+		graph_gen.setColor(myColor);         
+		graph_gen.fill3DRect (110, 50, 400, numFloors*50, true); 
 		
 		// Draw roof
-		int x[] = new int[4];
-		int y[] = new int[4];
-		x[0] = 160;    y[0] = 50;
-		x[1] = 210;    y[1] = 0;
-		x[2] = 410;   y[2] = 0;
-		x[3] = 460;   y[3] = 50;  		
-		g.setColor(Color.black);
-		g.fillPolygon (x, y, 4);
+		int x_coords[] = new int[4];
+		int y_coords[] = new int[4];
+		x_coords[0] = 110;    
+		x_coords[1] = 210;    
+		x_coords[2] = 410;  
+		x_coords[3] = 510;     
+		y_coords[0] = y_coords[3] = 50;
+		y_coords[1] = y_coords[2] = 0;
+		
+		graph_gen.setColor(Color.BLACK);
+		graph_gen.fillPolygon (x_coords, y_coords, 4);
 
-		//Draw lines to show each floor. Also draw exit doors on each floor        
-		for (int i = 1; i <= numFloors; i++) {
+		//Draw lines, draw a door and show the floor number for each floor       
+		for (int i = numFloors; i >= 1; i--) {
 			
-			int yFloor = 50 + (i * 50);
+			int yFloor = (getTopFloor() + 99) - (i * 50); // Add 99 to draw the line at the bottom of the floor
 			
-			g.drawLine(160,yFloor,460,yFloor);
+			graph_gen.drawLine(160,yFloor,460,yFloor);
 		 	
-			g.setColor(Color.black);
-			g.fillRect (300, yFloor - 40, 20, 40);
+			graph_gen.setColor(Color.BLACK);
+			graph_gen.fillRect (300, yFloor - 40, 20, 40);
 		
-			g.setColor(Color.red);        	
-			g.drawString ("EXIT", 320, yFloor - 30);
+			graph_gen.setColor(Color.RED);        	
+			graph_gen.drawString ("" + i, 302, yFloor - 20);
 		
-			g.setColor(C);
-			
-		}
-        
-
+			graph_gen.setColor(original_color);			
+		}      
     }
 }

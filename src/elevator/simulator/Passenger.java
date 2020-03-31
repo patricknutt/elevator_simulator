@@ -51,38 +51,38 @@ class Passenger implements Runnable, DrawListener {
 	  	
 	  	final int WAIT_TIME = 119999;	// < 2 minutes
 	  	try{
-	  	Random random = new Random();
-	  	int waitTime = random.nextInt(WAIT_TIME);
-	  	// Wait for a random time up to 2 minutes before waiting on elevator to arrive	  	
-	  	Thread.sleep(waitTime);
-	  		
-	  	// Randomly choose the starting floor
-	  	int currFloor = random.nextInt(myBuilding.getSize());
-	  	side = random.nextInt(2);
-	  		
-	  	// Wait for elevator. When elevator arrives, passenger gets on.
-        // Move to elevator
-        animator.addDrawListener(this);
-        
-        move( 300, ((myBuilding.getFirstFloor()-10) - currFloor * 50), 160 + (side * 285), ((myBuilding.getFirstFloor()-10) - currFloor * 50), 25);
-        
-        //myBuilding.callElevator(currFloor, side);
-	  	myBuilding.waitForElevator(currFloor, side);
-	  	myBuilding.getOnOffElevator(currFloor, side); 
-	  		
-    	animator.removeDrawListener(this);
-    	
-	  	// Randomly choose the ending floor
-	  	int destFloor = ((currFloor + (random.nextInt(myBuilding.getSize() - 1)))
-	  					 % myBuilding.getSize());
-	  		  	
-        // Code to move from elevator.         
-	  	myBuilding.waitForElevator(destFloor, side);
-	  	myBuilding.getOnOffElevator(destFloor, side);
-	  	
-        animator.addDrawListener(this);
-        move( 160 + (side * 285), ((myBuilding.getFirstFloor()-10) - destFloor * 50), 300, ((myBuilding.getFirstFloor()-10) - destFloor * 50), 25);  
-	  	animator.removeDrawListener(this);
+		  	Random random = new Random();
+		  	int waitTime = random.nextInt(WAIT_TIME);
+		  	// Wait for a random time up to 2 minutes before waiting on elevator to arrive	  	
+		  	Thread.sleep(waitTime);
+		  		
+		  	// Randomly choose the starting floor
+		  	int currFloor = random.nextInt(myBuilding.getSize());
+		  	side = random.nextInt(2);
+		  		
+		  	// Wait for elevator. When elevator arrives, passenger gets on.
+	        // Move to elevator
+	        animator.addDrawListener(this);
+	        
+	        move( 300, ((myBuilding.getTopFloor()) - currFloor * 50), 160 + (side * 285), ((myBuilding.getTopFloor()) - currFloor * 50), 25);
+	        
+	        //myBuilding.callElevator(currFloor, side);
+		  	myBuilding.waitForElevator(currFloor, side);
+		  	myBuilding.getOnOffElevator(currFloor, side); 
+		  		
+	    	animator.removeDrawListener(this);
+	    	
+		  	// Randomly choose the ending floor
+		  	int destFloor = ((currFloor + (random.nextInt(myBuilding.getSize() - 1)))
+		  					 % myBuilding.getSize());
+		  		  	
+	        // Code to move from elevator.         
+		  	myBuilding.waitForElevator(destFloor, side);
+		  	myBuilding.getOnOffElevator(destFloor, side);
+		  	
+	        animator.addDrawListener(this);
+	        move( 160 + (side * 285), ((myBuilding.getTopFloor()) - destFloor * 50), 300, ((myBuilding.getTopFloor()) - destFloor * 50), 25);  
+		  	animator.removeDrawListener(this);
 	  		
 	  	} catch (InterruptedException ie) {
 	  	}
