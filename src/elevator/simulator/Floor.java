@@ -104,6 +104,25 @@ class Floor {
 		}
 			
 	}
+	
+	/**
+	 * Method called when an elevator is called
+	 */
+	synchronized public void callCar() {
+		try {
+				// Pre-Condition
+				while (!(state == LEAVE || state == NO_WAIT)) {
+				wait();
+			}
+			
+				// Post-Condition
+				state = WAIT;
+				notifyAll();
+	
+		} catch (InterruptedException ie) {
+		}
+		
+	}
 }
   	
   	

@@ -37,8 +37,8 @@ class Passenger implements Runnable, DrawListener {
 	 */	 
 	 public Passenger (int number, Building building, Animator animator) {
 	 	
-	 	myNumber = number;
-	 	myBuilding = building;
+	 	this.myNumber = number;
+	 	this.myBuilding = building;
 	 	this.animator = animator;
 	 	
 	 }
@@ -56,7 +56,7 @@ class Passenger implements Runnable, DrawListener {
 		  	// Wait for a random time up to 2 minutes before waiting on elevator to arrive	  	
 		  	Thread.sleep(waitTime);
 		  		
-		  	// Randomly choose the starting floor
+		  	// Randomly choose the starting floor and direction
 		  	int currFloor = random.nextInt(myBuilding.getSize());
 		  	side = random.nextInt(2);
 		  		
@@ -64,14 +64,15 @@ class Passenger implements Runnable, DrawListener {
 	        // Move to elevator
 	        animator.addDrawListener(this);
 	        
-	        move( 300, ((myBuilding.getTopFloor()) - currFloor * 50), 160 + (side * 285), ((myBuilding.getTopFloor()) - currFloor * 50), 25);
+	        move(300, ((myBuilding.getTopEdge()) + (currFloor * myBuilding.getFloorHeight())), 
+	        		160 + (side * 285), ((myBuilding.getTopEdge()) + (currFloor * myBuilding.getFloorHeight())), 25);
 	        
-	        //myBuilding.callElevator(currFloor, side);
+
 		  	myBuilding.waitForElevator(currFloor, side);
 		  	myBuilding.getOnOffElevator(currFloor, side); 
 		  		
 	    	animator.removeDrawListener(this);
-	    	
+	    	Thread.sleep(waitTime);
 		  	// Randomly choose the ending floor
 		  	int destFloor = ((currFloor + (random.nextInt(myBuilding.getSize() - 1)))
 		  					 % myBuilding.getSize());
@@ -81,8 +82,10 @@ class Passenger implements Runnable, DrawListener {
 		  	myBuilding.getOnOffElevator(destFloor, side);
 		  	
 	        animator.addDrawListener(this);
-	        move( 160 + (side * 285), ((myBuilding.getTopFloor()) - destFloor * 50), 300, ((myBuilding.getTopFloor()) - destFloor * 50), 25);  
+	        move(160 + (side * 285), ((myBuilding.getTopEdge()) + (destFloor * myBuilding.getFloorHeight())), 
+	        		300, ((myBuilding.getTopEdge()) + (destFloor * myBuilding.getFloorHeight())), 25);  
 		  	animator.removeDrawListener(this);
+	    	Thread.sleep(waitTime);
 	  		
 	  	} catch (InterruptedException ie) {
 	  	}
@@ -91,12 +94,11 @@ class Passenger implements Runnable, DrawListener {
     /**
      *  Method to draw the person at a given position.
      */ 
-    public synchronized void draw(DrawEvent de) {
-        Graphics g = de.getGraphics();
-        Color C = g.getColor();        // Save old color
+    public synchronized void draw(DrawEvent d_event) {
+        Graphics graph_gen = d_event.getGraphics();
+        Color original_color = graph_gen.getColor();        // Save old color
 
-        // Get where to draw.  If at end of path notify
-        // the passenger.
+        // Get where to draw.  If at end of path notify the passenger.
         Point p = myPath.nextPosition();
         int x = (int)p.getX();
         int y = (int)p.getY();
@@ -107,17 +109,17 @@ class Passenger implements Runnable, DrawListener {
         }        
 
         //Draw Stick Figure
-    g.setColor(faceColor);    
-	g.fillOval(x + 5, y+10, 10, 10); // face
-	g.setColor(bodyColor);
-	g.drawOval(x+5, y+10, 10, 10); // head
-    g.drawString("" + myNumber, x + 15 - (side * 30), y+25); // number
-	g.drawLine(x+8, y+20, x+8, y+40); // body
-	g.drawLine(x+0, y+25, x+15, y+25); // arms 
-	g.drawLine(x, y+50, x +8, y+40); // left leg
-	g.drawLine(x+15, y+50, x+8, y+40); // right leg
-
-        g.setColor(C);                 // Restore old color
+	    graph_gen.setColor(faceColor);
+	    graph_gen.drawString("" + myNumber, x + 15 - (side * 30), y + 25); // number    
+	    graph_gen.fillOval(x + 5, y + 10, 10, 10); // face
+	    graph_gen.setColor(bodyColor);
+	    graph_gen.drawOval(x + 5, y + 10, 10, 10); // head
+	    graph_gen.drawLine(x + 8, y + 20, x + 8, y + 40); // body
+	    graph_gen.drawLine(x + 0, y + 25, x + 15, y + 25); // arms 
+	    graph_gen.drawLine(x, y + 50, x + 8, y + 40); // left leg
+	    graph_gen.drawLine(x + 15, y + 50, x + 8, y + 40); // right leg
+	
+	    graph_gen.setColor(original_color);                 // Restore old color
     }
 
      /**

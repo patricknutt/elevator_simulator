@@ -7,6 +7,7 @@
 package elevator.simulator;
 
 import java.awt.Graphics;
+import java.awt.Font;
 
 import elevator.animator.Animator;
 import elevator.animator.DrawEvent;
@@ -26,9 +27,16 @@ public class Building implements DrawListener{
 	private Color myColor = Color.LIGHT_GRAY; 
 	private Floor[][] floor; 
 	private int numFloors;
+	private int left = 110;
+	private int top = 50;
+	private int right = 510;
+	private int building_width = right - left;
+	private int building_height;
+	private int floor_height = 50;
 	
 	public Building (int numFloors, int numCars, Animator animator) {
 		this.numFloors = numFloors;
+		this.building_height = numFloors * floor_height;
 		floor = new Floor[numFloors][numCars];
 		animator.addDrawListener(this);
 								
@@ -59,22 +67,34 @@ public class Building implements DrawListener{
 		floor[index][side].movePAX();
 	}
 	
+	public void callElevator(int index, int side) {
+		floor[index][side].callCar();
+	}
+	
+	public int getFloorHeight() {
+		return floor_height;
+	}
+	
 	public int getSize() {
 		return floor.length;
 	}
 	
 	public int getLeftEdge() {
-		return 110;
+		return left;
 	}
 	
 	public int getRightEdge() {
-		return 400;
+		return right;
 	}
 	
-	public int getTopFloor() {
-		return (numFloors * 50);
-	}	
-
+	public int getBottomEdge() {
+		return building_height + top - 1;
+	}
+	
+	public int getTopEdge() {
+		return top;
+	}
+	
 	public void draw(DrawEvent d_event) {
 		
 		Graphics graph_gen = d_event.getGraphics();
@@ -84,17 +104,17 @@ public class Building implements DrawListener{
 		        
 		// Draw Building shell
 		graph_gen.setColor(myColor);         
-		graph_gen.fill3DRect (110, 50, 400, numFloors*50, true); 
+		graph_gen.fill3DRect (left, top, building_width, building_height, true); 
 		
 		// Draw roof
 		int x_coords[] = new int[4];
 		int y_coords[] = new int[4];
-		x_coords[0] = 110;    
-		x_coords[1] = 210;    
-		x_coords[2] = 410;  
-		x_coords[3] = 510;     
-		y_coords[0] = y_coords[3] = 50;
-		y_coords[1] = y_coords[2] = 0;
+		x_coords[0] = left;    
+		x_coords[1] = left + 100;    
+		x_coords[2] = right - 100;  
+		x_coords[3] = right;     
+		y_coords[0] = y_coords[3] = top;
+		y_coords[1] = y_coords[2] = top - floor_height;
 		
 		graph_gen.setColor(Color.BLACK);
 		graph_gen.fillPolygon (x_coords, y_coords, 4);
@@ -102,15 +122,16 @@ public class Building implements DrawListener{
 		//Draw lines, draw a door and show the floor number for each floor       
 		for (int i = numFloors; i >= 1; i--) {
 			
-			int yFloor = (getTopFloor() + 99) - (i * 50); // Add 99 to draw the line at the bottom of the floor
-			
+			int yFloor = getBottomEdge() - (floor_height * (i - 1)); 
+
 			graph_gen.drawLine(160,yFloor,460,yFloor);
 		 	
 			graph_gen.setColor(Color.BLACK);
 			graph_gen.fillRect (300, yFloor - 40, 20, 40);
 		
+			graph_gen.setFont(new Font("Times New Roman", Font.PLAIN, 10));
 			graph_gen.setColor(Color.RED);        	
-			graph_gen.drawString ("" + i, 302, yFloor - 20);
+			graph_gen.drawString ("" + i, 306, yFloor - 20);
 		
 			graph_gen.setColor(original_color);			
 		}      

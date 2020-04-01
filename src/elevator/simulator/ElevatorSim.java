@@ -3,9 +3,9 @@ package elevator.simulator;
 import elevator.animator.Animator;
 
 public class ElevatorSim {
-	static final int TOTAL_PAX = 20;	// Number of passengers
-	static final int TOTAL_CARS = 3;	// Number of elevator cars
-	static final int TOTAL_FLOORS = 15;  // Number of floors (Max is 10)
+	static final int TOTAL_PAX = 50;	// Number of passengers
+	static final int TOTAL_CARS = 2;	// Number of elevator cars
+	static final int TOTAL_FLOORS = 10;  // Number of floors (Max is 10)
 	
 	public static void main(String[] args) {
 
