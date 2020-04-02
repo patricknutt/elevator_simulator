@@ -20,6 +20,8 @@ import java.awt.Point;
  * Elevator represents an elevator object. The elevator continuously moves from 
  * floor to floor. When it reaches the top floor, it reverses direction and
  * heads back down. It does the opposite when it reaches the ground floor.
+ * 
+ * TODO: Animate the elevator doors opening and closing
  */
 class Elevator implements Runnable, DrawListener {	
 
@@ -27,9 +29,9 @@ class Elevator implements Runnable, DrawListener {
 	private Building myBuilding;
 	private Animator animator;
 	private StraightLinePath myPath;
-	private Color myColor = Color.BLUE;
+	private Color elevator_color = Color.DARK_GRAY;
 	private int elevator_x;
-	private int currFloor = 0;
+	private int currFloor;
 	private String direction = "up"; 
 	int start_y;
 	int end_y;
@@ -43,14 +45,16 @@ class Elevator implements Runnable, DrawListener {
 	 public Elevator(int number, Building building, Animator animator) {
 	 	myNumber = number;
 	 	myBuilding = building; 
-		start_y = myBuilding.getBottomEdge() - ((currFloor + 1) * myBuilding.getFloorHeight());
-		end_y = myBuilding.getBottomEdge() - ((currFloor + 2) * myBuilding.getFloorHeight());
+	 	currFloor = myBuilding.getSize() - 1;
+	 	start_y = myBuilding.getTopEdge() + ((currFloor) * myBuilding.getFloorHeight());
+		end_y = myBuilding.getTopEdge() + ((currFloor  - 1) * myBuilding.getFloorHeight());
 	 	this.animator = animator;
+	 	
 	 	if (myNumber == 0) {
-	 		elevator_x = myBuilding.getLeftEdge() + 1; 		
+	 		elevator_x = myBuilding.getElevatorLocation() + 1; 		
 	 	}
 	 	else {
-	 		elevator_x = myBuilding.getRightEdge() - 39;	 		
+	 		elevator_x = myBuilding.getElevatorLocation() + 41;	 		
 	 	}
 
 	 	myPath = new StraightLinePath(elevator_x, start_y, elevator_x, end_y, 10);
@@ -60,43 +64,41 @@ class Elevator implements Runnable, DrawListener {
 	  * Elevator thread that waits one second before arriving at and then leaving
 	  * a floor. The Elevator is in continuous motion.
 	  */
-	 // TODO: glitch on first move from 1st to 2nd floor
-	 // TODO: need to reset floor to 0 to prevent going into the basement and getting an out of bounds error
 	 public void run() {
 		animator.addDrawListener(this);
 		
-		final int WAIT_TIME = 5999;	
+		final int WAIT_TIME = 1000;	
 	 	try {	 		
 	 		while (true) {
 				Random random = new Random(myNumber);
 	  			int waitTime = random.nextInt(WAIT_TIME);
-
-		  		if(currFloor == (myBuilding.getSize() - 1) || currFloor < 0) {
-		  			switchDirection();
-		  		}
 	  				  	
 	  			// Wait for a random time before waiting on elevator to arrive	  	
 	  			Thread.sleep(waitTime);	
 		  		
-		  		if(currFloor >= 0) {
-				  	myBuilding.elevatorArrives(currFloor, myNumber);
-				  	
-				  	// Wait for 1 second while elevator traverses to the next floor	  	
-				  	Thread.sleep(500);
-				  	
+		  		if(currFloor < myBuilding.getSize()) {
+				  	myBuilding.elevatorArrives(currFloor, myNumber);				  	  			  	
+				  	Thread.sleep(waitTime);
+		  			
 		 			myBuilding.elevatorLeaves(currFloor, myNumber);
-		  			move(elevator_x, start_y, elevator_x, end_y, 10);
 		  		
-		 			if (direction == "down") {
-		 				start_y = myBuilding.getBottomEdge() - ((currFloor + 1) * myBuilding.getFloorHeight());
-		 				end_y = myBuilding.getBottomEdge() - ((currFloor) * myBuilding.getFloorHeight());
+		 			if (direction == "up") {
+		 				start_y = myBuilding.getTopEdge() + ((currFloor) * myBuilding.getFloorHeight());
+		 				end_y = myBuilding.getTopEdge() + ((currFloor  - 1) * myBuilding.getFloorHeight());
 		 				currFloor--;
 		 			}
 		 			else {
-		 				start_y = myBuilding.getBottomEdge() - ((currFloor + 1) * myBuilding.getFloorHeight());
-		 				end_y = myBuilding.getBottomEdge() - ((currFloor + 2) * myBuilding.getFloorHeight());
+		 				start_y = myBuilding.getTopEdge() + ((currFloor) * myBuilding.getFloorHeight());
+		 				end_y = myBuilding.getTopEdge() + ((currFloor + 1) * myBuilding.getFloorHeight());
 		 				currFloor++;
 		 			}
+
+		  			move(elevator_x, start_y, elevator_x, end_y, 10);
+		  		}	
+		  		
+		  		
+		  		if(currFloor == (myBuilding.getSize() - 1) || currFloor == 0) {
+		  			switchDirection();
 		  		}
 			}
 		} catch (InterruptedException ie) {
@@ -134,19 +136,14 @@ class Elevator implements Runnable, DrawListener {
 		int x = (int)p.x;
 		int y = (int)p.y;
 		
+		
 		if (! myPath.hasMoreSteps()) {
-		        notify();
-		}        
+			notify();
+		} 
 		
-//		Point position = myPath.nextPosition();
+		graph_gen.setColor(elevator_color);
 		
-		Color original_color = graph_gen.getColor();
-		graph_gen.setColor(myColor);
-		
-		graph_gen.fillRect(x, y, 40, myBuilding.getFloorHeight());
-		graph_gen.drawString(direction, x, y);
-		
-		graph_gen.setColor(original_color);
+		graph_gen.fillRect(x, y, 39, myBuilding.getFloorHeight());
 	}
 	
 	public void switchDirection() {

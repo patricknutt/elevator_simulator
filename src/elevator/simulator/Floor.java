@@ -28,8 +28,7 @@ class Floor {
 			// Pre-Condition 
 			while (!(state == LOAD_UNLOAD || state == LEAVE)) {
 				wait();
-			}
-			
+			}			
 			// Simulate elevator loading/unloading. Waits 1/2 second
 			Thread.sleep(500);
 			
@@ -50,7 +49,7 @@ class Floor {
 			while (!(state == WAIT || state == NO_WAIT)) {
 				wait();
 			}
-			
+
 			// Post-Condition
 				state = WAIT;
 				notifyAll();
@@ -96,32 +95,13 @@ class Floor {
 				while (!(state == LEAVE)) {
 					wait();
 				}
+
 				// Post-Condition
 				state = NO_WAIT;
 				notifyAll();
 				
 		} catch (InterruptedException ie) {
-		}
-			
-	}
-	
-	/**
-	 * Method called when an elevator is called
-	 */
-	synchronized public void callCar() {
-		try {
-				// Pre-Condition
-				while (!(state == LEAVE || state == NO_WAIT)) {
-				wait();
-			}
-			
-				// Post-Condition
-				state = WAIT;
-				notifyAll();
-	
-		} catch (InterruptedException ie) {
-		}
-		
+		}			
 	}
 }
   	

@@ -21,26 +21,37 @@ import elevator.animator.StraightLinePath;
  * Passenger represents an elevator passenger. The passenger chooses a floor, 
  * waits for an elevator, then chooses a destination floor and gets off on that 
  * floor.
+ * 
+ * TODO: Animate the person walking
+ * TODO: Have the people stand next to each other instead of taking up the same space
  */
 class Passenger implements Runnable, DrawListener {
 	
-	private int myNumber; 	// Number of this passenger
-	private Building myBuilding;
+	private int pax_number; 	// Number of this passenger
+	private Building building;
 	private Animator animator;
-    private Path myPath;
-    private Color faceColor = new Color(255, 153, 80);
-    private Color bodyColor = new Color(204, 80, 0); 
-    private int side;
+    private Path path;
+    private Color face_color = Color.ORANGE;
+    private Color body_color = Color.BLUE;
+    private int left_x;
+    private int right_x;
+    private int elevator = 0; 
 	
 	/** 
 	 * Constructor: Set the passenger number and building
 	 */	 
-	 public Passenger (int number, Building building, Animator animator) {
+	 public Passenger (int pax_number, Building building, Animator animator) {
 	 	
-	 	this.myNumber = number;
-	 	this.myBuilding = building;
+	 	this.pax_number = pax_number;
+	 	this.building = building;
 	 	this.animator = animator;
+	 	left_x = building.getLeftEdge();
+	 	right_x = building.getElevatorLocation() - 15;
 	 	
+	 }
+	 
+	 private int setPaxElevation(int floor) {
+		 return ((building.getTopEdge()) + (floor * building.getFloorHeight()) - 1);
 	 }
 	 
 	 /** 
@@ -49,42 +60,44 @@ class Passenger implements Runnable, DrawListener {
 	  */
 	  public void run() {
 	  	
-	  	final int WAIT_TIME = 119999;	// < 2 minutes
+	  	final int WAIT_TIME = 499;	// < 2 minutes
 	  	try{
 		  	Random random = new Random();
 		  	int waitTime = random.nextInt(WAIT_TIME);
 		  	// Wait for a random time up to 2 minutes before waiting on elevator to arrive	  	
 		  	Thread.sleep(waitTime);
 		  		
-		  	// Randomly choose the starting floor and direction
-		  	int currFloor = random.nextInt(myBuilding.getSize());
-		  	side = random.nextInt(2);
-		  		
-		  	// Wait for elevator. When elevator arrives, passenger gets on.
-	        // Move to elevator
-	        animator.addDrawListener(this);
-	        
-	        move(300, ((myBuilding.getTopEdge()) + (currFloor * myBuilding.getFloorHeight())), 
-	        		160 + (side * 285), ((myBuilding.getTopEdge()) + (currFloor * myBuilding.getFloorHeight())), 25);
-	        
+		  	// Randomly choose the starting floor
+		  	int curr_floor = random.nextInt(building.getSize());
+		  	int pax_elevation = setPaxElevation(curr_floor);
+		  	
+		  	// Randomly choose elevator
+		  	elevator = random.nextInt(2);
 
-		  	myBuilding.waitForElevator(currFloor, side);
-		  	myBuilding.getOnOffElevator(currFloor, side); 
-		  		
+	        animator.addDrawListener(this);
+	        // Move from left to right
+	        move(left_x, pax_elevation, right_x, pax_elevation, 25);	        
+
+		  	building.waitForElevator(curr_floor, elevator);
+		  	building.getOnOffElevator(curr_floor, elevator); 
+		  	
+		  	// Wait for elevator. When elevator arrives, passenger gets on.		  		
 	    	animator.removeDrawListener(this);
 	    	Thread.sleep(waitTime);
+	    	
 		  	// Randomly choose the ending floor
-		  	int destFloor = ((currFloor + (random.nextInt(myBuilding.getSize() - 1)))
-		  					 % myBuilding.getSize());
-		  		  	
-	        // Code to move from elevator.         
-		  	myBuilding.waitForElevator(destFloor, side);
-		  	myBuilding.getOnOffElevator(destFloor, side);
+		  	int dest_floor = random.nextInt(building.getSize()); // 0 to 9
+		  	pax_elevation = setPaxElevation(dest_floor);
 		  	
+	        // Code to move from elevator.         
+		  	building.waitForElevator(dest_floor, elevator);
+		  	building.getOnOffElevator(dest_floor, elevator);
+		  	
+		  	// Exit elevator and walk through the door
 	        animator.addDrawListener(this);
-	        move(160 + (side * 285), ((myBuilding.getTopEdge()) + (destFloor * myBuilding.getFloorHeight())), 
-	        		300, ((myBuilding.getTopEdge()) + (destFloor * myBuilding.getFloorHeight())), 25);  
+	        move(right_x, pax_elevation, left_x, pax_elevation, 25);
 		  	animator.removeDrawListener(this);
+		  	
 	    	Thread.sleep(waitTime);
 	  		
 	  	} catch (InterruptedException ie) {
@@ -96,30 +109,26 @@ class Passenger implements Runnable, DrawListener {
      */ 
     public synchronized void draw(DrawEvent d_event) {
         Graphics graph_gen = d_event.getGraphics();
-        Color original_color = graph_gen.getColor();        // Save old color
 
         // Get where to draw.  If at end of path notify the passenger.
-        Point p = myPath.nextPosition();
+        Point p = path.nextPosition();
         int x = (int)p.getX();
         int y = (int)p.getY();
 
         // Notify if done drawing
-        if (! myPath.hasMoreSteps()) {
+        if (! path.hasMoreSteps()) {
                 notify();
         }        
 
         //Draw Stick Figure
-	    graph_gen.setColor(faceColor);
-	    graph_gen.drawString("" + myNumber, x + 15 - (side * 30), y + 25); // number    
+	    graph_gen.setColor(face_color);  
 	    graph_gen.fillOval(x + 5, y + 10, 10, 10); // face
-	    graph_gen.setColor(bodyColor);
+	    graph_gen.setColor(body_color);
 	    graph_gen.drawOval(x + 5, y + 10, 10, 10); // head
 	    graph_gen.drawLine(x + 8, y + 20, x + 8, y + 40); // body
 	    graph_gen.drawLine(x + 0, y + 25, x + 15, y + 25); // arms 
 	    graph_gen.drawLine(x, y + 50, x + 8, y + 40); // left leg
 	    graph_gen.drawLine(x + 15, y + 50, x + 8, y + 40); // right leg
-	
-	    graph_gen.setColor(original_color);                 // Restore old color
     }
 
      /**
@@ -132,7 +141,7 @@ class Passenger implements Runnable, DrawListener {
     private synchronized void move(int startX, int startY, int endX, 
         int endY,int numberOfSteps) {
         try {
-            myPath = new StraightLinePath(startX, startY, endX, endY, numberOfSteps);
+            path = new StraightLinePath(startX, startY, endX, endY, numberOfSteps);
             wait();
         } catch(InterruptedException e) {
         }
