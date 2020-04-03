@@ -27,7 +27,7 @@ import java.util.EventListener;
 
 /**
  *  Purpose:	The DrawListener interface allows objects to register
- *    		with the animator.  It is the Listener interface
+ *    			with the animator.  It is the Listener interface
  *              defined in the Java Event Model used in the generic
  *              animator.
  */

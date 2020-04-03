@@ -31,7 +31,7 @@ import java.awt.Point;
  *              next position that occurs along the path.  It is
  *		first used in Program 7.1, but is used in all the 
  *		animation examples, and is an essential part to the 
- *		final aniamtor.
+ *		final animator.
  *		
  *		Note that in this case it is a simple straight line, 
  *		but the path could be a spline curve, or Bessel 

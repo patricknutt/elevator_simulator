@@ -153,7 +153,7 @@ public class Animator extends JPanel implements Runnable {
 
     /** removeElement is used to remove drawables from the vector.  While
     *   not needed to make the animator work, you need to implement this
-    *   method for the probject.
+    *   method for the project.
     */
     public synchronized void removeDrawListener(DrawListener d) {
         elementsToDraw.removeElement(d);
