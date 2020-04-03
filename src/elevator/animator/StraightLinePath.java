@@ -80,4 +80,3 @@ public class StraightLinePath implements Path {
                 (int)(startY + (deltaY * currentStep)));
     }
 }
-

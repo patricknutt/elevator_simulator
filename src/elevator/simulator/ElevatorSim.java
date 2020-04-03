@@ -4,7 +4,7 @@ import elevator.animator.Animator;
 
 public class ElevatorSim {
 	static final int TOTAL_PAX = 10;	// Number of passengers
-	static final int TOTAL_CARS = 2;	// Number of elevator cars
+	static final int TOTAL_CARS = 2;	// Number of elevator cars (Max is 9)
 	static final int TOTAL_FLOORS = 10;  // Number of floors (Max is 10)
 	
 	public static void main(String[] args) {
@@ -26,7 +26,7 @@ public class ElevatorSim {
 		}
 		// Start all passenger threads
 		for (int i = 0; i < TOTAL_PAX; i++) {
-			Passenger passenger = new Passenger(i, building, animator);
+			Passenger passenger = new Passenger(building, animator, TOTAL_CARS);
 			(paxThreads[i] = new Thread(passenger)).start();
 		}
 	}

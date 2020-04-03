@@ -56,6 +56,13 @@ public final class MoveController {
     private Path myPath;
     private boolean doNotify = false;
 
+    /** Constructor creates the MoveController and sets the starting path
+     *  
+     */
+    public MoveController(Path path) {
+        myPath = path;
+    }
+    
     /**
      *  The move method simply saves the parameter path into
      *  the variable myPath, and does the wait, much like its

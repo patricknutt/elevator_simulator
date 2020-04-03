@@ -14,7 +14,7 @@ import java.util.Random;
 import elevator.animator.Animator;
 import elevator.animator.DrawEvent;
 import elevator.animator.DrawListener;
-import elevator.animator.Path;
+import elevator.animator.MoveController;
 import elevator.animator.StraightLinePath;
 
 /**
@@ -22,34 +22,47 @@ import elevator.animator.StraightLinePath;
  * waits for an elevator, then chooses a destination floor and gets off on that 
  * floor.
  * 
- * TODO: Animate the person walking
+ * TODO: Animate the person walking (legs/arms moving)
  * TODO: Have the people stand next to each other instead of taking up the same space
+ * TODO: Adjust face color based on the passenger's unique number
  */
 class Passenger implements Runnable, DrawListener {
-	
-	private int pax_number; 	// Number of this passenger
 	private Building building;
 	private Animator animator;
-    private Path path;
+    private StraightLinePath to_elevator;
+    private StraightLinePath from_elevator;
+    private MoveController m_controller;
     private Color face_color = Color.ORANGE;
     private Color body_color = Color.BLUE;
     private int left_x;
     private int right_x;
-    private int elevator = 0; 
+    private int num_cars;
 	
 	/** 
-	 * Constructor: Set the passenger number and building
+	 * <b>Passenger</b><p>
+	 * <i>public Passenger (Building building, Animator animator, int num_cars)</i>
+	 * <p>
+	 * Creates a new Passenger object. This constructor sets building parameters and define starting and ending x values
+	 * @param building - Building object that will house this passenger
+	 * @param animator - The Animator class used to animate this passenger
+	 * @param num_cars - The number of cars included in the Building object
+	 *  
 	 */	 
-	 public Passenger (int pax_number, Building building, Animator animator) {
-	 	
-	 	this.pax_number = pax_number;
+	 public Passenger (Building building, Animator animator, int num_cars) {
+
 	 	this.building = building;
 	 	this.animator = animator;
-	 	left_x = building.getLeftEdge();
-	 	right_x = building.getElevatorLocation() - 15;
-	 	
+	 	this.num_cars = num_cars;
+	 	this.m_controller = new MoveController(to_elevator);
+	 	left_x = building.getLeftEdge() + building.getDoorWidth();
+	 	right_x = building.getElevatorLocation() - 15;	
 	 }
 	 
+	 /**
+	  * setPaxElevation
+	  * @param floor - representation of the floor this passenger is on
+	  * @return The y coordinate location corresponding to the passed in floor
+	  */
 	 private int setPaxElevation(int floor) {
 		 return ((building.getTopEdge()) + (floor * building.getFloorHeight()) - 1);
 	 }
@@ -60,47 +73,47 @@ class Passenger implements Runnable, DrawListener {
 	  */
 	  public void run() {
 	  	
-	  	final int WAIT_TIME = 499;	// < 2 minutes
-	  	try{
-		  	Random random = new Random();
-		  	int waitTime = random.nextInt(WAIT_TIME);
-		  	// Wait for a random time up to 2 minutes before waiting on elevator to arrive	  	
-		  	Thread.sleep(waitTime);
-		  		
-		  	// Randomly choose the starting floor
-		  	int curr_floor = random.nextInt(building.getSize());
-		  	int pax_elevation = setPaxElevation(curr_floor);
-		  	
-		  	// Randomly choose elevator
-		  	elevator = random.nextInt(2);
+	  	final int WAIT_TIME = 499;	
+	  	while(true){
+		  	try{
+			  	Random random = new Random();
+			  	int waitTime = random.nextInt(WAIT_TIME);
+			  	
+			  	// Wait for a random time up to WAIT_TIME before waiting on elevator to arrive	  	
+			  	Thread.sleep(waitTime);
+			  		
+			  	// Randomly choose the starting  and destination floors & elevator
+			  	int curr_floor = random.nextInt(building.getSize());
+			  	int dest_floor = random.nextInt(building.getSize());
+			  	int load_elevation = setPaxElevation(curr_floor);
+			  	int unload_elevation = setPaxElevation(dest_floor);
+			  	int elevator = random.nextInt(num_cars);
+			  	
+			  	// Create paths
+			  	to_elevator = new StraightLinePath(left_x, load_elevation, right_x, load_elevation, 25);
+			  	from_elevator = new StraightLinePath(right_x, unload_elevation, left_x, unload_elevation, 25);
 
-	        animator.addDrawListener(this);
-	        // Move from left to right
-	        move(left_x, pax_elevation, right_x, pax_elevation, 25);	        
 
-		  	building.waitForElevator(curr_floor, elevator);
-		  	building.getOnOffElevator(curr_floor, elevator); 
-		  	
-		  	// Wait for elevator. When elevator arrives, passenger gets on.		  		
-	    	animator.removeDrawListener(this);
-	    	Thread.sleep(waitTime);
-	    	
-		  	// Randomly choose the ending floor
-		  	int dest_floor = random.nextInt(building.getSize()); // 0 to 9
-		  	pax_elevation = setPaxElevation(dest_floor);
-		  	
-	        // Code to move from elevator.         
-		  	building.waitForElevator(dest_floor, elevator);
-		  	building.getOnOffElevator(dest_floor, elevator);
-		  	
-		  	// Exit elevator and walk through the door
-	        animator.addDrawListener(this);
-	        move(right_x, pax_elevation, left_x, pax_elevation, 25);
-		  	animator.removeDrawListener(this);
-		  	
-	    	Thread.sleep(waitTime);
-	  		
-	  	} catch (InterruptedException ie) {
+		        // Exit the door and walk to the elevator
+		        animator.addDrawListener(this);	 	
+		        m_controller.move(to_elevator);
+		        
+			  	// Wait for elevator and load on the elevator when it arrives
+			  	building.waitForElevator(curr_floor, elevator);
+			  	building.getOnOffElevator(curr_floor, elevator);		  		
+		    	animator.removeDrawListener(this);
+			  				  	
+		        // Wait for the elevator to arrive at the destination floor        
+			  	building.waitForElevator(dest_floor, elevator);
+			  	building.getOnOffElevator(dest_floor, elevator);
+			  	
+			  	// Exit the elevator and walk through the door
+		        animator.addDrawListener(this);
+		        m_controller.move(from_elevator);
+			  	animator.removeDrawListener(this);	
+			  	
+		  	} catch (InterruptedException ie) {
+		  	}
 	  	}
 	  }
 	  
@@ -111,15 +124,10 @@ class Passenger implements Runnable, DrawListener {
         Graphics graph_gen = d_event.getGraphics();
 
         // Get where to draw.  If at end of path notify the passenger.
-        Point p = path.nextPosition();
+        Point p = m_controller.nextPosition();
         int x = (int)p.getX();
         int y = (int)p.getY();
-
-        // Notify if done drawing
-        if (! path.hasMoreSteps()) {
-                notify();
-        }        
-
+        
         //Draw Stick Figure
 	    graph_gen.setColor(face_color);  
 	    graph_gen.fillOval(x + 5, y + 10, 10, 10); // face
@@ -129,28 +137,5 @@ class Passenger implements Runnable, DrawListener {
 	    graph_gen.drawLine(x + 0, y + 25, x + 15, y + 25); // arms 
 	    graph_gen.drawLine(x, y + 50, x + 8, y + 40); // left leg
 	    graph_gen.drawLine(x + 15, y + 50, x + 8, y + 40); // right leg
-    }
-
-     /**
-      *   This function implements the procedural mechanism for
-      *   moving this object.  It is synchronized, and so in the
-      *   synchronized block it sets up the path, and then calls
-      *   wait to stop the thread until the movement on the path
-      *   has completed.
-      */
-    private synchronized void move(int startX, int startY, int endX, 
-        int endY,int numberOfSteps) {
-        try {
-            path = new StraightLinePath(startX, startY, endX, endY, numberOfSteps);
-            wait();
-        } catch(InterruptedException e) {
-        }
     }	  
-}
-	  	
-
-	  						
-	  	
-	  
-	 
-	 
+}	 

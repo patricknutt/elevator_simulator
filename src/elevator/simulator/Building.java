@@ -38,6 +38,8 @@ public class Building implements DrawListener{
 	private int building_width = building_right - building_left;
 	private int building_height;
 	private int floor_height = 50;
+	private int door_height = 40;
+	private int door_width = 20;
 	private Roof roof;
 	
 	public Building (int num_floors, int num_cars, Animator animator) {
@@ -116,6 +118,10 @@ public class Building implements DrawListener{
 		return floor_height;
 	}
 	
+	public int getDoorWidth() {
+		return door_width;
+	}
+	
 	public int getSize() {
 		return floor.length;
 	}
@@ -145,7 +151,7 @@ public class Building implements DrawListener{
 			int this_floor = getBottomEdge() - (floor_height * (i - 1) + 1);	
 			
 			graph_gen.setColor(door_color);
-			graph_gen.fillRect (building_left + 1, this_floor - 40, 20, 40);
+			graph_gen.fillRect (building_left + 1, this_floor - 40, door_width, door_height);
 			
 			graph_gen.setColor(floor_color);
 			graph_gen.drawLine(building_left,  this_floor,  getElevatorLocation(),  this_floor);

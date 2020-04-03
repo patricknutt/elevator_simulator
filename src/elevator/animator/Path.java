@@ -49,4 +49,3 @@ public interface Path {
      */
     public Point nextPosition();
 }
-
